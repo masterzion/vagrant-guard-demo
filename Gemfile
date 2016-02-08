@@ -2,7 +2,8 @@ source "http://rubygems.org"
 
 
 # To get vagrant and virtualbox going
-gem "vagrant",'~> 0.8'
+gem "bundler",'1.10.6'
+gem "vagrant",'~> 1'
 gem "veewee",">= 0.2"
 gem "sahara"
 
@@ -10,7 +11,7 @@ gem "sahara"
 gem "cucumber-puppet"
 gem "rspec-puppet"
 gem "puppet-lint"
-gem "rspec"
+gem "rspec",">= 2.14"
 
 # Guard gem itself
 # see - https://github.com/guard/guard

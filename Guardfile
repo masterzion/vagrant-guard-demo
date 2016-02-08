@@ -1,4 +1,5 @@
 require 'guard/cucumber'
+require "guard/cucumber/runner"
 
 # Inline extending the ::Guard::Cucumber
 # Because by default it only looks in the ['features'] directory
@@ -6,7 +7,7 @@ require 'guard/cucumber'
 module ::Guard
   class ExtendedCucumber < ::Guard::Cucumber
     def run_all
-      passed = Runner.run(['puppet-repo/features'], options.merge(options[:run_all] || { }).merge(:message => 'Running all features'))
+      passed = Guard::Cucumber::Runner.run(['puppet-repo/devel/features'], options.merge(options[:run_all] || { }).merge(:message => 'Running all features'))
 
       if passed
         @failed_paths = []
@@ -50,12 +51,26 @@ end
 # This is used to only invoke the vagrant_provision if all test show green
 def all_tests_pass
   cucumber_guard = ::Guard.guards({ :name => 'extendedcucumber', :group => 'tests'}).first
+
   cucumber_passed = cucumber_guard.instance_variable_get("@failed_paths").empty?
+
+  rspec_passed = true
   rspec_guard = ::Guard.guards({ :name => 'rspec', :group => 'tests'}).first
-  rspec_passed = rspec_guard.instance_variable_get("@failed_paths").empty?
+
+  puts "--------------\n"
+  rspec_guard_obj = rspec_guard.instance_variable_get("@failed_paths")
+  if rspec_guard_obj.instance_of? String
+      rspec_passed = rspec_guard.instance_variable_get("@failed_paths").delete(' ').empty?
+  end
+  puts "--------------\n"
   return rspec_passed && cucumber_passed
 end
 
+guard :rspec, cmd: 'bundle exec rspec', spec_paths: ['OEIS/specs'] do
+  watch(%r{^OEIS/specs/(.+)_spec\.rb$}) { |m| "OEIS/specs/#{m[1]}_spec.rb" }
+  watch(%r{^OEIS/scripts/(.+)\.rb$}) { |m| "OEIS/specs/#{m[1]}_spec.rb" }
+  watch('spec/spec_helper.rb')  { "spec" }
+end
 
 # Actual guard section
 group :tests do
@@ -77,7 +92,6 @@ group :tests do
   # --strict        : because otherwise cucumber would exit with 0 when there are pending steps
   # --format pretty : to get readable output, default is null output
   guard :extendedcucumber, :cli => "-s --require puppet-repo/features --strict --format pretty" do
-
     # Match any .pp file (but be carefull not include and dot-temporary files)
     watch(%r{^puppet-repo/[^.]*\.pp$}) { "puppet-repo/features" }
 
