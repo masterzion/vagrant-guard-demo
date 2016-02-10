@@ -4,3 +4,4 @@ iso/*
 vendor/*
 .vagrant
 .*.swp
+Gemfile.lock

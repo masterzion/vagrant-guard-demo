@@ -57,12 +57,10 @@ def all_tests_pass
   rspec_passed = true
   rspec_guard = ::Guard.guards({ :name => 'rspec', :group => 'tests'}).first
 
-  puts "--------------\n"
   rspec_guard_obj = rspec_guard.instance_variable_get("@failed_paths")
   if rspec_guard_obj.instance_of? String
       rspec_passed = rspec_guard.instance_variable_get("@failed_paths").delete(' ').empty?
   end
-  puts "--------------\n"
   return rspec_passed && cucumber_passed
 end
 
